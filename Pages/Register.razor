@@ -1,0 +1,108 @@
+﻿@page "/"
+@page "/register"
+@using BlockchainVoting.Data
+@inject Blockchain blockchain
+@inject AccountService account
+<h3>Current Account: @account.GetActiveUser()</h3>
+@if (account.ActiveUser == null)
+{
+	@if (success)
+	{
+		<label>ID Number</label>
+		<InputText class="form-label" id="id" @bind-Value="userId" />
+		<br/>
+		<label class="form-label">palmScan</label>
+		<InputText id="palm" @bind-Value="palmScan" />
+		<br/>
+		<label class="form-label">OTP</label>
+		<InputText id="otp" @bind-Value="otp" />
+		<br />
+		<button type="submit" @onclick="Login">Login</button>
+	}
+	else
+	{
+		<label class="form-label">ID Number</label>
+		<InputText style="border-color:red" id="id" @bind-Value="userId" />
+		<br />
+		<label class="form-label">palmScan</label>
+		<InputText style="border-color:red" id="palm" @bind-Value="palmScan" />
+		<br />
+		<label class="form-label">OTP</label>
+		<InputText style="border-color:red" id="otp" @bind-Value="otp" />
+		<br />
+		<button type="submit" @onclick="Login">Login</button>
+	}
+}
+else
+{
+	@if (account.ActiveUser.IsAdmin())
+	{
+		@if (account.CurrNode == null)
+		{
+			<h4>Create a node to continue</h4>
+		}
+		else
+		{
+			<br />
+			<h4>Register a user</h4>
+			<label>ID Number</label>
+			<InputText class="form-label" id="id" @bind-Value="userId" />
+			<br />
+			<label class="form-label">PalmScan</label>
+			<InputText id="scan" @bind-Value="palmScan" />
+			<input type="checkbox" name="myCheckbox" @bind-value="success">
+			<br />
+			<button type="submit" @onclick="RegisterVoter">Register</button>
+			<br />
+
+			<br />
+			<h4>Get OTP</h4>
+			<label>ID Number</label>
+			<InputText class="form-label" id="id" @bind-Value="otpUser" />
+			<button type="submit" @onclick="GetOTP">GetOTP</button>
+			<br />
+			<h5>OTP: @Userotp</h5>
+		}
+	}
+	<button class="btn btn-secondary" @onclick="Logout">Log out</button>
+}
+
+
+@code {
+	private string userId = String.Empty;
+	private string otp = String.Empty;
+	private string palmScan = String.Empty;
+	private string otpUser = String.Empty;
+	private string Userotp = String.Empty;
+	private bool success = true;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+	}
+
+	private void RegisterVoter()
+	{
+		account.RegisterUser(userId, Blockchain.GetSha256(palmScan));
+		palmScan = String.Empty;
+		userId = String.Empty;
+	}
+
+	private void Login()
+	{
+		success = account.Login(userId, palmScan ,otp);
+	}
+
+	private void Logout()
+	{
+		userId = String.Empty;
+		otp = String.Empty;
+		account.Logout();
+	}
+
+	private void GetOTP()
+	{
+		Userotp = account.GetOTP(otpUser);
+		userId = String.Empty;
+	}
+}

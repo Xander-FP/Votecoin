@@ -1,0 +1,25 @@
+﻿@page "/has_voted"
+@using BlockchainVoting.Data
+@inject Blockchain blockchain
+@inject AccountService account
+
+<h3>Specify account to check</h3>
+
+<label class="form-label">Account:</label><InputText id="user" @bind-Value="user" />
+<button @onclick="SearchUser">Find</button>
+
+<p> Has voted: @has_voted</p>
+
+
+@code {
+	private string user = string.Empty;
+	private string has_voted = string.Empty;
+
+	private void SearchUser()
+	{
+		if (account.CurrNode == null)
+			has_voted = "No node selected";
+		else
+			has_voted = account.CurrNode.HasVoted(user).ToString();
+	}
+}

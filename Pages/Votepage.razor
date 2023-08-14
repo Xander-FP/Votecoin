@@ -1,0 +1,90 @@
+﻿@page "/vote"
+@using BlockchainVoting.Data
+@inject Blockchain blockchain
+@inject AccountService account
+
+@if(account.ActiveUser == null || account.CurrNode == null)
+{
+	<h3>Log in to vote</h3>
+}
+else
+{
+	<h3>Currently Voting: @account.ActiveUser.IdNumber at @account.CurrNode.VotingStation.ToString()</h3>
+	<p>Your voteId is: @voteId</p>
+	<EditForm Model="@vote" OnSubmit="@CastVote">
+		<label class="form-label" id="party">Party:</label><InputText id="party" @bind-Value="vote.Party" />
+		<button type="submit">Vote</button>
+	</EditForm>
+
+	<!--<button class="btn btn-primary" @onclick="Mine">Mine</button>-->
+	<button class="btn btn-primary" @onclick="GetFullChain">Show Full Chain</button>
+	<button class="btn btn-primary" @onclick="HideChain">Hide Chain</button>
+	<button class="btn btn-primary" @onclick="CheckChain">Check chain</button>
+	<h3>@valid</h3>
+
+	@foreach (Block block in fullChain)
+	{
+		<p>@block.ToString()</p>
+	}
+	@if (decryptedChain.Count == 0)
+	{
+		<button class="btn btn-primary" @onclick="DecryptChain">Decrypt</button>
+	}
+	else
+	{
+		<h3>Decrypted chain</h3>
+		@foreach (Block block in decryptedChain)
+		{
+			<p>@block.ToString()</p>
+		}
+	}
+	
+}
+
+@code {
+	private List<Block> fullChain = new();
+	private Vote vote = new();
+	private List<Block> decryptedChain = new();
+	private string valid = "Chain is not valid";
+	private string voteId;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+	}
+
+	private void CastVote()
+	{
+		voteId = account.Vote(vote.Party);
+		if (voteId != String.Empty)
+		{
+			blockchain.Mine();
+		}
+	}
+
+	private void GetFullChain()
+	{
+		fullChain = blockchain.GetFullChain();
+	}
+
+	private void HideChain()
+	{
+		fullChain = new();
+	}
+
+	private void CheckChain()
+	{
+		if (blockchain.IsValidChain(blockchain.GetFullChain()))
+		{
+			valid = "Blockchain is valid";
+			return;
+		}
+		valid = "Chain is not valid";
+	}
+
+	private void DecryptChain()
+	{
+		decryptedChain = blockchain.DecryptAllVotes();
+	}
+}
+

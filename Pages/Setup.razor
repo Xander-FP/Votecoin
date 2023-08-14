@@ -1,0 +1,65 @@
+﻿@page "/setup"
+@using BlockchainVoting.Data
+@using Microsoft.AspNetCore.Http
+@inject Blockchain blockchain
+@inject AccountService account
+<h3>Setup</h3>
+CurrentNode: @account.GetCurrNode()
+<!--Select a new Node:
+<select name="SelectedOption" @onchange="UpdateNode">
+	<option value="">Select an option</option>
+@foreach (var option in blockchain.GetAllNodes())
+{
+		<option value="@selectedOption">@option.VotingStation.ToString()</option>
+}
+</select>
+<button type="submit">Update Current Node</button>
+<br />
+Option: @selectedOption-->
+<br />
+
+
+
+@if (account.CurrNode == null)
+{
+	<EditForm Model="@station" OnSubmit="@AddNode">
+		<label class="form-label" id="station">District:</label><InputText id="district" @bind-Value="station.District" />
+		<label class="form-label" id="station">Province:</label><InputText id="province" @bind-Value="station.Province" />
+		<button type="submit">Add Node</button>
+	</EditForm>
+}
+
+
+@code {
+	private VotingStation station = new();
+	private Node selectedOption = new();
+
+	//Here we will allow the addition of parties, and the setup of nodes
+	public void AddNode()
+	{
+		Node n = new()
+			{
+				VotingStation = station,
+				Address = Guid.NewGuid().ToString(),
+				Blockchain = blockchain
+			};
+		blockchain.RegisterNode(n);
+		account.SetNode(n);
+		station = new();
+	}
+
+	public void UpdateNode()
+	{
+		account.SetNode(selectedOption);
+	}
+
+	public void AddParty()
+	{
+	
+	}
+
+	public void RemoveParty()
+	{
+	
+	}
+}
